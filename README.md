@@ -21,7 +21,6 @@
     (2) URL：http://127.0.0.1:3333/pushData
         Method：POST、PUT、PATCH、DELETE
         Params：隨意
-        content-type：application/json
 
 ### 參考文件
 
