@@ -16,6 +16,7 @@
 
     (1) URL：http://127.0.0.1:3333/getTest
         Method：GET
+        query：要不要加隨意
 
     (2) URL：http://127.0.0.1:3333/pushData
         Method：POST、PUT、PATCH、DELETE

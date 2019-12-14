@@ -9,40 +9,44 @@ const ListenPort = ServerCongif.port;  //listen Port
 // client 端有請求
 server.on('request', (req, res) => {
     let pathname = require('url').parse(req.url, true).pathname;  // 請求的路徑
+    let queryString = require('url').parse(req.url, true).query;  // Get參數
     let resData = {};  // 回應的資料
 
-    // 路由：/pushData
-    if (req.method === 'GET' && pathname === '/getTest') {
-        resData = { testName: 'Mark', testAge: 30 };
+    let resHeaders = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': '*'
+    }
 
-        res.writeHead(200, {'Content-Type': 'application/json'});
+    // Method: Get
+    if (req.method === 'GET' && /\/getTest.*/.test(pathname)) {
+        resData.resTestData = { testName: 'Mark', testAge: 30 };
+        resData.queryStr = ( queryString === undefined)? '' : queryString;
+
+        resHeaders['Access-Control-Allow-Methods'] = 'GET';
+
+        res.writeHead(200, resHeaders);
         res.end(JSON.stringify(resData));
         return;
     }
     
-    // 路由：/pushData
-    let notGet = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method);
-    if (notGet && pathname === '/pushData') {
-        // 前端的請求資料格式，限定用 JSON 格式
-        if (req.headers['content-type'] !== 'application/json') {
-            res.writeHead(403, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify({ errState: 1, message: '資料格式請使用 JSON'}));
-            return;
-        }
-
+    // Method: except GET
+    if (pathname === '/pushData') {
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString(); // 把 Buffer 的值轉字串
         });
-
+        
         // POST 參數接收完畢後
         req.on('end', () => {
-            resData.data = JSON.parse(body);  //解晰 JSON 物件為 JS 物件
+            resData.reqParams = body;
             resData.errState = 0;
-            resData.message = '請求ok，你傳來的內容請看 data 屬性';
+            resData.message = '請求ok!';
             resData.reqMethod = req.method;
-    
-            res.writeHead(200, {'Content-Type': 'application/json'});
+
+            resHeaders['Access-Control-Allow-Methods'] =  'POST, PUT, PATCH, DELETE, OPTIONS';
+
+            res.writeHead(200, resHeaders);
             res.end(JSON.stringify(resData));
         });
         return;
@@ -50,7 +54,7 @@ server.on('request', (req, res) => {
 
     // 請求的 Method 或 Path 有誤時
     res.writeHead(403, {'Content-Type': 'application/json'});
-    res.end(JSON.stringify({ errState: 1, message: '請求失敗，請檢查 API 及 Method 是否正確!'}));
+    res.end(JSON.stringify({ errState: 1, message: '請求失敗，請檢查 API 是否正確!'}));
 });
 
 
